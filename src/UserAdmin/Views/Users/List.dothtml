@@ -1,0 +1,23 @@
+﻿@viewModel UserAdmin.ViewModels.Users.ListViewModel, UserAdmin
+@masterPage Views/MasterPage.dotmaster
+
+<dot:Content ContentPlaceHolderID="MainContent">
+
+    <h2>{{resource: UserAdmin.Resources.PageNames.Users_List}}</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dot:RouteLink Text="New item"
+                           RouteName="Users_Detail"
+                           class="btn btn-primary" />
+        </div>
+    </div>
+
+    <dot:GridView DataSource="{value: Page.Items}"
+                  ShowHeaderWhenNoData="true"
+                  class="table table-bordered">
+        <dd:DynamicColumns />
+    </dot:GridView>
+
+</dot:Content>
+

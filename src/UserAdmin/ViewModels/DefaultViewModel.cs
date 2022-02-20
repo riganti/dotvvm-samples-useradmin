@@ -4,17 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using DotVVM.Framework.ViewModel;
 
-namespace UserAdmin.ViewModels
+namespace UserAdmin.ViewModels;
+
+public class DefaultViewModel : MasterPageViewModel
 {
-    public class DefaultViewModel : MasterPageViewModel
+
+    public string Title { get; set;}
+
+    public DefaultViewModel()
     {
-
-		public string Title { get; set;}
-
-		public DefaultViewModel()
-		{
-			Title = "Hello from DotVVM!";
-		}
-
+        Title = "Hello from DotVVM!";
     }
+
 }
