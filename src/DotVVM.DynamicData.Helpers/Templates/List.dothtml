@@ -1,0 +1,23 @@
+﻿@viewModel %ViewModelType%
+@masterPage %MasterPagePath%
+
+<dot:Content ContentPlaceHolderID="MainContent">
+
+    <h2>{{resource: Page.Title}}</h2>
+
+    <div class="card mb-4" IncludeInPage="{resource: Page.ToolbarButtons.Count > 0}">
+        <dot:Repeater class="card-body" 
+                      DataSource="{value: Page.ToolbarButtons}" 
+                      RenderSettings.Mode="Server">
+            <a href="{value: Url}" class="btn btn-primary">{{value: Text}}</a>
+        </dot:Repeater>
+    </div>
+
+    <dot:GridView DataSource="{value: Page.Items}"
+                  ShowHeaderWhenNoData="true"
+                  class="table table-bordered">
+        <dd:DynamicColumns />
+    </dot:GridView>
+
+</dot:Content>
+

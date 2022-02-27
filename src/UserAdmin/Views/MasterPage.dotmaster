@@ -22,18 +22,15 @@
                                        class-active="{resource: Context.Route.RouteName == "Default"}"
                                        RouteName="Default">Home</dot:RouteLink>
                     </li>
-                    <li class="nav-item">
-                        <dot:RouteLink class="nav-link"
-                                       class-active="{resource: Context.Route.RouteName == "Users_List"}"
-                                       RouteName="Users_List">{{resource: UserAdmin.Resources.PageNames.Users_List}}</dot:RouteLink>
-                    </li>
-                    <li class="nav-item">
-                        <dot:RouteLink class="nav-link"
-                                       class-active="{resource: Context.Route.RouteName == "Roles_List"}"
-                                       RouteName="Roles_List">{{resource: UserAdmin.Resources.PageNames.Roles_List}}</dot:RouteLink>
-                    </li>
+                    <dot:Repeater RenderWrapperTag="false" RenderSettings.Mode="Server" DataSource="{value: Menu.Menu}">
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               <%--class-active="{value: SectionName == _parent.CurrentSection}"--%>
+                               href="{value: Url}">{{value: Text}}</a>
+                        </li>
+                    </dot:Repeater>
 
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" DataContext="{value: LanguageSelector}">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {{resource: CurrentLanguage}}
                         </a>
@@ -43,7 +40,7 @@
                                       aria-labelledby="navbarDropdown"
                                       Validation.Enabled="false">
                             <li>
-                                <dot:LinkButton class="dropdown-item" Click="{command: _root.ChangeLanguage(_this)}" Text="{value: _this}" />
+                                <dot:LinkButton class="dropdown-item" Click="{command: _parent.ChangeLanguage(_this)}" Text="{value: _this}" />
                             </li>
                         </dot:Repeater>
                     </li>

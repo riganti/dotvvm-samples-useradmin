@@ -117,16 +117,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Roles_Detail" xml:space="preserve">
+  <data name="Global_InsertButtonText" xml:space="preserve">
+    <value>New item</value>
+  </data>
+  <data name="Page_Roles_Detail_Title" xml:space="preserve">
     <value>Role detail</value>
   </data>
-  <data name="Roles_List" xml:space="preserve">
+  <data name="Page_Roles_List_Title" xml:space="preserve">
     <value>Roles</value>
   </data>
-  <data name="Users_Detail" xml:space="preserve">
+  <data name="Page_Users_Detail_Title" xml:space="preserve">
     <value>User detail</value>
   </data>
-  <data name="Users_List" xml:space="preserve">
+  <data name="Page_Users_List_Title" xml:space="preserve">
     <value>Users</value>
   </data>
 </root>

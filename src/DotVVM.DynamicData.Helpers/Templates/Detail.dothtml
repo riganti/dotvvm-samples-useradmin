@@ -1,0 +1,25 @@
+﻿@viewModel %ViewModelType%
+@masterPage %MasterPagePath%
+
+<dot:Content ContentPlaceHolderID="MainContent">
+
+    <h2>{{resource: Page.Title}}</h2>
+
+    <form>
+        <dd:BootstrapDynamicEntity DataContext="{value: Page.Item}" />
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <dot:Button Text="Save"
+                            Click="{command: Page.Save()}"
+                            class="btn btn-primary"
+                            IsSubmitButton="true" />
+                <dot:button Text="Cancel"
+                            Click="{command: Page.Cancel()}"
+                            class="btn btn-secondary" />
+            </div>
+        </div>
+    </form>
+
+</dot:Content>
+

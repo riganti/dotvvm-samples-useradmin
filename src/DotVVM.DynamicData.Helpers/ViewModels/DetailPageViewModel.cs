@@ -8,7 +8,7 @@ using DotVVM.Framework.ViewModel;
 
 namespace DotVVM.DynamicData.Helpers.ViewModels
 {
-    public class DetailPageViewModel<TDetailModel, TKey> : DotvvmViewModelBase 
+    public class DetailPageViewModel<TDetailModel, TKey> : DynamicPageViewModelBase 
     {
         private readonly IDetailPageService<TDetailModel, TKey> service;
 

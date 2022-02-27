@@ -44,10 +44,10 @@ public class Startup
             .AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
 
-        services.AddScoped<UserService>();
-        services.AddScoped<UserDetailService>();
-        services.AddScoped<RoleService>();
-        services.AddScoped<ISelectorDataProvider<RoleSelectorItem>, RoleService>();
+        //services.AddScoped<UserService>();
+        //services.AddScoped<UserDetailService>();
+        //services.AddScoped<RoleService>();
+        //services.AddScoped<ISelectorDataProvider<RoleSelectorItem>, RoleService>();
 
         services.AddRequestLocalization(options =>
         {

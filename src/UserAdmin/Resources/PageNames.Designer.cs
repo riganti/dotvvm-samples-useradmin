@@ -61,38 +61,47 @@ namespace UserAdmin.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New item.
+        /// </summary>
+        public static string Global_InsertButtonText {
+            get {
+                return ResourceManager.GetString("Global_InsertButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role detail.
         /// </summary>
-        public static string Roles_Detail {
+        public static string Page_Roles_Detail_Title {
             get {
-                return ResourceManager.GetString("Roles_Detail", resourceCulture);
+                return ResourceManager.GetString("Page_Roles_Detail_Title", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Roles.
         /// </summary>
-        public static string Roles_List {
+        public static string Page_Roles_List_Title {
             get {
-                return ResourceManager.GetString("Roles_List", resourceCulture);
+                return ResourceManager.GetString("Page_Roles_List_Title", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to User detail.
         /// </summary>
-        public static string Users_Detail {
+        public static string Page_Users_Detail_Title {
             get {
-                return ResourceManager.GetString("Users_Detail", resourceCulture);
+                return ResourceManager.GetString("Page_Users_Detail_Title", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Users.
         /// </summary>
-        public static string Users_List {
+        public static string Page_Users_List_Title {
             get {
-                return ResourceManager.GetString("Users_List", resourceCulture);
+                return ResourceManager.GetString("Page_Users_List_Title", resourceCulture);
             }
         }
     }

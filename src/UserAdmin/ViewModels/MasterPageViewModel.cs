@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DotVVM.DynamicData.Helpers.ViewModels;
 using DotVVM.Framework.Hosting;
 using DotVVM.Framework.ViewModel;
 using Microsoft.AspNetCore.Builder;
@@ -16,22 +17,8 @@ namespace UserAdmin.ViewModels;
 public class MasterPageViewModel : DotvvmViewModelBase
 {
 
-    public string CurrentLanguage => Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
+    public MenuViewModel Menu { get; set; } = new();
 
-    public string[] SupportedCultures => Context.Services.GetService<IOptions<RequestLocalizationOptions>>().Value.SupportedUICultures.Select(c => c.TwoLetterISOLanguageName).ToArray();
-
-    public void ChangeLanguage(string language)
-    {
-        if (!SupportedCultures.Contains(language))
-        {
-            throw new Exception("Unsupported culture!");
-        }
-
-        Context.GetAspNetCoreContext().Response.Cookies.Append(
-            CookieRequestCultureProvider.DefaultCookieName,
-            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(language))
-        );
-        Context.RedirectToLocalUrl(Context.HttpContext.Request.Url.PathAndQuery);
-    }
+    public LanguageSelectorViewModel LanguageSelector { get; set; } = new();
 
 }

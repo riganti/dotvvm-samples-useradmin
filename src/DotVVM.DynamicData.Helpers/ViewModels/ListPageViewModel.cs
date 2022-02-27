@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using DotVVM.DynamicData.Helpers.Services;
 using DotVVM.Framework.Controls;
-using DotVVM.Framework.ViewModel;
 
 namespace DotVVM.DynamicData.Helpers.ViewModels
 {
-    public class ListPageViewModel<TItem, TFilter> : DotvvmViewModelBase
+    public class ListPageViewModel<TItem, TFilter> : DynamicPageViewModelBase
         where TFilter : new()
     {
         private readonly IListPageService<TItem, TFilter> service;

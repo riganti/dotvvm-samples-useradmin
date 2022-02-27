@@ -7,8 +7,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Templates\Detail.dothtml" />
+    <None Remove="Templates\List.dothtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Templates\Detail.dothtml">
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Templates\List.dothtml">
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\dotvvm\src\DynamicData\Annotations\DotVVM.Framework.Controls.DynamicData.Annotations.csproj" />
+    <ProjectReference Include="..\..\dotvvm\src\DynamicData\DynamicData\DotVVM.Framework.Controls.DynamicData.csproj" />
     <ProjectReference Include="..\..\dotvvm\src\Framework\Framework\DotVVM.Framework.csproj" />
+    <ProjectReference Include="..\..\dotvvm\src\Framework\Hosting.AspNetCore\DotVVM.Framework.Hosting.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Metadata\" />
+    <Folder Include="Hosting\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Localization" Version="2.2.0" />
   </ItemGroup>
 
 </Project>
