@@ -6,7 +6,6 @@ using DotVVM.DynamicData.Helpers.Services;
 using DotVVM.Framework.Controls;
 using DotVVM.Framework.Controls.DynamicData.Annotations;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace UserAdmin.Services.Roles;

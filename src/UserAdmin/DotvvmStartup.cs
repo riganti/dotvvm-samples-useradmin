@@ -23,11 +23,6 @@ public class DotvvmStartup : IDotvvmStartup, IDotvvmServiceConfigurator
     private void ConfigureRoutes(DotvvmConfiguration config, string applicationPath)
     {
         config.RouteTable.Add("Default", "", "Views/Default.dothtml");
-
-        //config.RouteTable.Add("Users_List", "users/list", "Views/Users/List.dothtml");
-        //config.RouteTable.Add("Users_Detail", "users/detail/{Value?}", "Views/Users/Detail.dothtml");
-        //config.RouteTable.Add("Roles_List", "roles/list", "Views/Roles/List.dothtml");
-        //config.RouteTable.Add("Roles_Detail", "roles/detail/{Value?}", "Views/Roles/Detail.dothtml");
     }
 
     private void ConfigureControls(DotvvmConfiguration config, string applicationPath)
