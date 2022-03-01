@@ -67,4 +67,24 @@ public class DotvvmStartup : IDotvvmStartup, IDotvvmServiceConfigurator
                     .UseResourceFile(typeof(PageNames));
             });
     }
+
+    //config
+    //  .AddSection("Users", section => section
+    //    .AddListPage<UserListModel>(page => page
+    //      .UseFilter<UserFilterModel>((filter, query) => query.Where(i => i.Name.Contains(filter.SearchText)))
+    //      .UseEntityFrameworkCoreStore<AppDbContext>(c => c.Users, store => store
+    //        .UseMapping(entity => new UserFilterModel() { ... }, model => new IdentityUser() { ... })
+    //        //.UseAutoMapper()
+    //      )
+    //      .AddUserClaimFilter("CompanyIdClaim", (claimValue, query) => query.Where(i => i.CompanyId == claimValue))
+    //    )
+    //    .AddDetailPage<UserDetailModel>(page => page
+    //      .UseEntityFrameworkCoreStore<AppDbContext>(c => c.Users, store => store
+    //        .UseAutoMapper()
+    //        .UseSoftDelete(item => item.IsDeleted)
+    //      )
+    //      .AddUserRoleFilter("admin")
+    //      .AddUserClaimFilter("CompanyIdClaim", (claimValue, item) => item.CompanyId = claimValue))
+    //      .EnableInsert(false)
+    //  )
 }
