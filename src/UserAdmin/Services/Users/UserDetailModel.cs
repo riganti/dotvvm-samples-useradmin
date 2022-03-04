@@ -15,5 +15,5 @@ public class UserDetailModel
     public string PhoneNumber { get; set; }
 
     [Selector(typeof(RoleSelectorItem))]
-    public List<string> Roles { get; set; }
+    public List<string> Roles { get; set; } = new();
 }

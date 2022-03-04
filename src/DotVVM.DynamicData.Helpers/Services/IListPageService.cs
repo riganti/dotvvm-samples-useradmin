@@ -5,6 +5,6 @@ namespace DotVVM.DynamicData.Helpers.Services;
 public interface IListPageService<TItem, TFilter>
 {
 
-    Task LoadItems(IGridViewDataSet<TItem> items, TFilter? filter);
+    Task LoadItems(IGridViewDataSet<TItem> items, TFilter filter);
 
 }

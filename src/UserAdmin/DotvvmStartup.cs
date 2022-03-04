@@ -1,8 +1,13 @@
-﻿using DotVVM.DynamicData.Helpers.Configuration;
+﻿using System.Linq;
+using DotVVM.DynamicData.Helpers;
+using DotVVM.DynamicData.Helpers.Configuration;
 using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Controls.DynamicData;
 using DotVVM.Framework.ResourceManagement;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using UserAdmin.Database;
 using UserAdmin.Resources;
 using UserAdmin.Services.Roles;
 using UserAdmin.Services.Users;
@@ -56,8 +61,42 @@ public class DotvvmStartup : IDotvvmStartup, IDotvvmServiceConfigurator
             {
                 config
                     .AddSection("Users", section => section
-                        .AddListPage<UserListModel, UserFilterModel, UserService>()
-                        .AddDetailPage<UserDetailModel, string, UserDetailService>(page => page.AddSelector<RoleSelectorItem>())
+                        .AddListPage<UserListModel, UserFilterModel>(page => page 
+                            .UseEfCoreService<AppDbContext, AppUser, UserListModel>(service => service
+                                .UseProjection(users => users.Select(u => new UserListModel()
+                                {
+                                    Id = u.Id,
+                                    UserName = u.UserName,
+                                    Email = u.Email,
+                                    PhoneNumber = u.PhoneNumber,
+                                    Roles = string.Join(", ", u.Roles.Select(r => r.Role.Name))
+                                }))
+                            )
+                        )
+                        .AddDetailPage<UserDetailModel, string>(page => page
+                            .AddSelector<RoleSelectorItem>()
+                            .UseEfCoreService<AppDbContext, AppUser, UserDetailModel, string>(service => service
+                                .UseEntityFilter(users => users.Include(u => u.Roles))
+                                .UseMapping(e => new UserDetailModel()
+                                {
+                                    UserName = e.UserName,
+                                    Email = e.Email, 
+                                    PhoneNumber = e.PhoneNumber,
+                                    Roles = e.Roles.Select(r => r.RoleId).ToList()
+                                }, 
+                                (e, m) =>
+                                {
+                                    e.UserName = m.UserName;
+                                    e.Email = m.Email;
+                                    e.PhoneNumber = m.PhoneNumber;
+                                    e.Roles.Clear();
+                                    foreach (var r in m.Roles)
+                                    {
+                                        e.Roles.Add(new AppUserRole() { RoleId = r });
+                                    }
+                                })
+                            )
+                        )
                     )
                     .AddSection("Roles", section => section
                         .AddListPage<RoleModel, RoleFilterModel, RoleService>()
@@ -67,24 +106,4 @@ public class DotvvmStartup : IDotvvmStartup, IDotvvmServiceConfigurator
                     .UseResourceFile(typeof(PageNames));
             });
     }
-
-    //config
-    //  .AddSection("Users", section => section
-    //    .AddListPage<UserListModel>(page => page
-    //      .UseFilter<UserFilterModel>((filter, query) => query.Where(i => i.Name.Contains(filter.SearchText)))
-    //      .UseEntityFrameworkCoreStore<AppDbContext>(c => c.Users, store => store
-    //        .UseMapping(entity => new UserFilterModel() { ... }, model => new IdentityUser() { ... })
-    //        //.UseAutoMapper()
-    //      )
-    //      .AddUserClaimFilter("CompanyIdClaim", (claimValue, query) => query.Where(i => i.CompanyId == claimValue))
-    //    )
-    //    .AddDetailPage<UserDetailModel>(page => page
-    //      .UseEntityFrameworkCoreStore<AppDbContext>(c => c.Users, store => store
-    //        .UseAutoMapper()
-    //        .UseSoftDelete(item => item.IsDeleted)
-    //      )
-    //      .AddUserRoleFilter("admin")
-    //      .AddUserClaimFilter("CompanyIdClaim", (claimValue, item) => item.CompanyId = claimValue))
-    //      .EnableInsert(false)
-    //  )
 }

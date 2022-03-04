@@ -7,14 +7,15 @@ using DotVVM.Framework.Controls;
 using DotVVM.Framework.Controls.DynamicData.Annotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using UserAdmin.Database;
 
 namespace UserAdmin.Services.Roles;
 
 public class RoleService : IListPageService<RoleModel, RoleFilterModel>, ISelectorDataProvider<RoleSelectorItem>, IDetailPageService<RoleModel, string>
 {
-    private readonly RoleManager<IdentityRole> roleManager;
+    private readonly RoleManager<AppRole> roleManager;
 
-    public RoleService(RoleManager<IdentityRole> roleManager)
+    public RoleService(RoleManager<AppRole> roleManager)
     {
         this.roleManager = roleManager;
     }
@@ -33,7 +34,7 @@ public class RoleService : IListPageService<RoleModel, RoleFilterModel>, ISelect
         return await roleManager.Roles
             .Select(r => new RoleSelectorItem()
             {
-                Value = r.Name,
+                Value = r.Id,
                 DisplayName = r.Name
             })
             .ToListAsync();
@@ -58,7 +59,7 @@ public class RoleService : IListPageService<RoleModel, RoleFilterModel>, ISelect
     {
         if (id == null)
         {
-            await roleManager.CreateAsync(new IdentityRole(item.Name));
+            await roleManager.CreateAsync(new AppRole() { Name = item.Name });
         }
         else
         {

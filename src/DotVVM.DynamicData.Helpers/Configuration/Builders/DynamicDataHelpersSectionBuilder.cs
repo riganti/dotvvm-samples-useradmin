@@ -1,5 +1,5 @@
-﻿using DotVVM.DynamicData.Helpers.Services;
-using DotVVM.Framework.Configuration;
+﻿using DotVVM.DynamicData.Helpers.Model;
+using DotVVM.DynamicData.Helpers.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotVVM.DynamicData.Helpers.Configuration.Builders;
@@ -20,11 +20,15 @@ public class DynamicDataHelpersSectionBuilder
         SectionName = sectionName;
         GlobalConfiguration = globalConfiguration;
     }
-    
-    public DynamicDataHelpersSectionBuilder AddListPage<TModel, TFilter, TService>(Action<DynamicDataHelpersListPageBuilder>? configure = null)
-        where TService : IListPageService<TModel, TFilter>
+
+    public DynamicDataHelpersSectionBuilder AddListPage<TModel>(Action<DynamicDataHelpersListPageBuilder<TModel>>? configure = null)
     {
-        var page = new DynamicDataHelpersListPageBuilder(typeof(TService), this);
+        return AddListPage<TModel, EmptyFilterModel>();
+    }
+
+    public DynamicDataHelpersSectionBuilder AddListPage<TModel, TFilter>(Action<DynamicDataHelpersListPageBuilder<TModel>>? configure = null)
+    {
+        var page = new DynamicDataHelpersListPageBuilder<TModel>(typeof(TFilter), this);
         configure?.Invoke(page);
 
         pages.Add(page);
@@ -32,15 +36,34 @@ public class DynamicDataHelpersSectionBuilder
         return this;
     }
 
-    public DynamicDataHelpersSectionBuilder AddDetailPage<TModel, TKey, TService>(Action<DynamicDataHelpersDetailPageBuilder>? configure = null)
-        where TService : IDetailPageService<TModel, TKey>
+    public DynamicDataHelpersSectionBuilder AddListPage<TModel, TFilter, TService>(Action<DynamicDataHelpersListPageBuilder<TModel>>? configure = null) 
+        where TService : IListPageService<TModel, TFilter>
     {
-        var page = new DynamicDataHelpersDetailPageBuilder(typeof(TService), this);
+        return AddListPage<TModel, TFilter>(page =>
+        {
+            configure?.Invoke(page);
+            page.UseService(new DynamicDataHelpersListPageServiceBuilder<TModel, TFilter, TService>());
+        });
+    }
+
+    public DynamicDataHelpersSectionBuilder AddDetailPage<TModel, TKey>(Action<DynamicDataHelpersDetailPageBuilder<TModel, TKey>>? configure = null)
+    {
+        var page = new DynamicDataHelpersDetailPageBuilder<TModel, TKey>(this);
         configure?.Invoke(page);
 
         pages.Add(page);
 
         return this;
+    }
+
+    public DynamicDataHelpersSectionBuilder AddDetailPage<TModel, TKey, TService>(Action<DynamicDataHelpersDetailPageBuilder<TModel, TKey>>? configure = null)
+        where TService : IDetailPageService<TModel, TKey>
+    {
+        return AddDetailPage<TModel, TKey>(page =>
+        {
+            configure?.Invoke(page);
+            page.UseService(new DynamicDataHelpersDetailPageServiceBuilder<TModel, TKey, TService>());
+        });
     }
 
 

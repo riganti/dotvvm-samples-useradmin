@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using DotVVM.DynamicData.Helpers.Model;
+using DotVVM.DynamicData.Helpers.Services;
 using DotVVM.Framework.Configuration;
 using DotVVM.Framework.Controls.DynamicData.Annotations;
 using DotVVM.Framework.Controls.DynamicData.ViewModel;
@@ -14,19 +15,20 @@ public abstract class DynamicDataHelpersPageBuilder
 
     public string PageName { get; protected set; }
 
-    public Type ServiceType { get; }
-
     public IReadOnlySet<Type> RequiredSelectorTypes => requiredSelectorTypes;
 
     public DynamicDataHelpersSectionBuilder Section { get; }
 
     public bool IncludePageInMenu { get; protected set; }
+    
+    public abstract bool IsListPage { get; }
+    
+    public abstract bool IsDetailPage { get; }
 
 
-    protected DynamicDataHelpersPageBuilder(string pageName, Type serviceType, DynamicDataHelpersSectionBuilder section)
+    protected DynamicDataHelpersPageBuilder(string pageName, DynamicDataHelpersSectionBuilder section)
     {
         PageName = pageName;
-        ServiceType = serviceType;
         Section = section;
     }
 
@@ -48,7 +50,7 @@ public abstract class DynamicDataHelpersPageBuilder
 
     protected string GetTemplateMarkup(string templateName)
     {
-        var stream = typeof(DynamicDataHelpersListPageBuilder).Assembly.GetManifestResourceStream($"DotVVM.DynamicData.Helpers.Templates.{templateName}.dothtml")!;
+        var stream = typeof(IListPageService<,>).Assembly.GetManifestResourceStream($"DotVVM.DynamicData.Helpers.Templates.{templateName}.dothtml")!;
         using var streamReader = new StreamReader(stream, Encoding.UTF8);
         var markup = streamReader.ReadToEnd();
 
@@ -89,29 +91,6 @@ public abstract class DynamicDataHelpersPageBuilder
         return selectorsTupleTypes;
     }
 
-    protected Type EnsureServiceType(Type serviceType, Type requiredInterfaceType)
-    {
-        var interfaceTypes = ServiceType.GetInterfaces()
-            .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == requiredInterfaceType)
-            .ToArray();
-        if (!serviceType.IsClass || serviceType.IsAbstract)
-        {
-            throw new ArgumentException($"The service type {serviceType.ToFullNameString()} used in a detail page must be a non-abstract class!", nameof(serviceType));
-        }
-
-        if (interfaceTypes.Length == 0)
-        {
-            throw new ArgumentException($"The service type {serviceType.ToFullNameString()} used in a detail page must implement IDetailPage<TModel, TKey> interface!", nameof(serviceType));
-        }
-
-        if (interfaceTypes.Length > 1)
-        {
-            throw new ArgumentException($"The service type {serviceType.ToFullNameString()} used in a detail page implements more than one interface of IDetailPage<TModel, TKey>!", nameof(serviceType));
-        }
-
-        return interfaceTypes[0];
-    }
-
     public DynamicDataHelpersPageConfiguration Build(IServiceCollection services)
     {
         services.Configure<DotvvmConfiguration>(config =>
@@ -128,7 +107,6 @@ public abstract class DynamicDataHelpersPageBuilder
     {
         return new DynamicDataHelpersPageConfiguration(
             PageName, 
-            ServiceType, 
             RequiredSelectorTypes, 
             GetRouteName(), 
             GetRouteParameters(), 

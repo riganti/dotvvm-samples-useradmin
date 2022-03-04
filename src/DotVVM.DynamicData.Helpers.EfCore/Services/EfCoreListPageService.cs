@@ -9,43 +9,59 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DotVVM.DynamicData.Helpers.EfCore.Services
 {
-    public abstract class EfCoreListPageService<TEntity, TListModel, TFilterModel> : IListPageService<TListModel, TFilterModel> 
+    public class EfCoreListPageService<TDbContext, TEntity, TListModel, TFilterModel> : IListPageService<TListModel, TFilterModel> 
+        where TDbContext : DbContext
         where TEntity : class
     {
-        protected readonly DbContext dbContext;
+        private TDbContext DbContext { get; }
 
-        public EfCoreListPageService(DbContext dbContext)
+        private readonly Func<IQueryable<TEntity>, TFilterModel, IQueryable<TEntity>>? entityFilter;
+        private readonly Func<IQueryable<TEntity>, IQueryable<TListModel>>? projection;
+        private readonly Func<IGridViewDataSet<TListModel>, TDbContext, Task>? postProcessor;
+
+        public EfCoreListPageService(
+            TDbContext dbContext, 
+            Func<IQueryable<TEntity>, TFilterModel, IQueryable<TEntity>>? entityFilter = null,
+            Func<IQueryable<TEntity>, IQueryable<TListModel>>? projection = null,
+            Func<IGridViewDataSet<TListModel>, TDbContext, Task>? postProcessor = null)
         {
-            this.dbContext = dbContext;
+            if (projection == null && typeof(TEntity) != typeof(TListModel))
+            {
+                throw new Exception($"The EfCoreService needs to specify mapping because the model type {typeof(TListModel)} is not the same as the entity type {typeof(TEntity)}.");
+            }
+            
+            DbContext = dbContext;
+            this.entityFilter = entityFilter;
+            this.projection = projection;
+            this.postProcessor = postProcessor;
         }
 
-        public async Task LoadItems(IGridViewDataSet<TListModel> items, TFilterModel? filter)
+        public async Task LoadItems(IGridViewDataSet<TListModel> items, TFilterModel filter)
         {
-            await ValidateQuery(items, filter);
+            IQueryable<TEntity> queryable = DbContext.Set<TEntity>();
 
-            IQueryable<TEntity> queryable = dbContext.Set<TEntity>();
-            queryable = ApplyFilter(queryable, filter);
-            var mappedQueryable = await ProjectAsync(queryable);
+            if (entityFilter != null)
+            {
+                queryable = entityFilter(queryable, filter);
+            }
+
+            IQueryable<TListModel> mappedQueryable;
+            if (projection != null)
+            {
+                mappedQueryable = projection(queryable);
+            }
+            else
+            {
+                mappedQueryable = (IQueryable<TListModel>)queryable;
+            }
+
             await items.LoadFromQueryableAsync(mappedQueryable);
 
-            await PostProcessResults(items);
+            if (postProcessor != null)
+            {
+                await postProcessor(items, DbContext);
+            }
         }
 
-        protected abstract Task<IQueryable<TListModel>> ProjectAsync(IQueryable<TEntity> queryable);
-
-        protected virtual Task PostProcessResults(IGridViewDataSet<TListModel> items)
-        {
-            return Task.CompletedTask;
-        }
-
-        protected virtual Task ValidateQuery(IGridViewDataSet<TListModel> items, TFilterModel? filter)
-        {
-            return Task.CompletedTask;
-        }
-
-        protected IQueryable<TEntity> ApplyFilter(IQueryable<TEntity> queryable, TFilterModel? filter)
-        {
-            return queryable;
-        }
     }
 }

@@ -8,40 +8,40 @@ using Microsoft.EntityFrameworkCore;
 
 namespace UserAdmin.Services.Users;
 
-public class UserService : EfCoreListPageService<IdentityUser, UserListModel, UserFilterModel>
-{
-    public UserService(DbContext dbContext) : base(dbContext)
-    {
-    }
+//public class UserService : EfCoreListPageService<IdentityUser, UserListModel, UserFilterModel>
+//{
+//    public UserService(DbContext dbContext) : base(dbContext)
+//    {
+//    }
 
-    protected override async Task<IQueryable<UserListModel>> ProjectAsync(IQueryable<IdentityUser> queryable)
-    {
-        return queryable
-            .Select(s => new UserListModel()
-            {
-                Id = s.Id,
-                UserName = s.UserName,
-                Email = s.Email,
-                PhoneNumber = s.PhoneNumber
-            });
-    }
+//    protected override async Task<IQueryable<UserListModel>> ProjectAsync(IQueryable<IdentityUser> queryable)
+//    {
+//        return queryable
+//            .Select(s => new UserListModel()
+//            {
+//                Id = s.Id,
+//                UserName = s.UserName,
+//                Email = s.Email,
+//                PhoneNumber = s.PhoneNumber
+//            });
+//    }
 
-    protected override async Task PostProcessResults(IGridViewDataSet<UserListModel> items)
-    {
-        var userIds = items.Items.Select(i => i.Id).ToArray();
+//    protected override async Task PostProcessResults(IGridViewDataSet<UserListModel> items)
+//    {
+//        var userIds = items.Items.Select(i => i.Id).ToArray();
 
-        var userRoles = await dbContext.Set<IdentityUserRole<string>>()
-            .Join(dbContext.Set<IdentityRole>(), ur => ur.RoleId, r => r.Id,
-                (ur, r) => new { UserId = ur.UserId, RoleId = r.Id, RoleName = r.Name })
-            .Where(ur => userIds.Contains(ur.UserId))
-            .ToListAsync();
+//        var userRoles = await dbContext.Set<IdentityUserRole<string>>()
+//            .Join(dbContext.Set<IdentityRole>(), ur => ur.RoleId, r => r.Id,
+//                (ur, r) => new { UserId = ur.UserId, RoleId = r.Id, RoleName = r.Name })
+//            .Where(ur => userIds.Contains(ur.UserId))
+//            .ToListAsync();
 
-        foreach (var item in items.Items)
-        {
-            item.Roles = string.Join(", ", userRoles.Where(ur => ur.UserId == item.Id).Select(ur => ur.RoleName));
-        }
+//        foreach (var item in items.Items)
+//        {
+//            item.Roles = string.Join(", ", userRoles.Where(ur => ur.UserId == item.Id).Select(ur => ur.RoleName));
+//        }
 
-        await base.PostProcessResults(items);
-    }
+//        await base.PostProcessResults(items);
+//    }
 
-}
+//}

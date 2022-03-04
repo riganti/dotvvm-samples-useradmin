@@ -1,52 +1,64 @@
-﻿using DotVVM.DynamicData.Helpers.Services;
+﻿using DotVVM.DynamicData.Helpers.Model;
+using DotVVM.DynamicData.Helpers.Services;
 using DotVVM.DynamicData.Helpers.ViewModels;
 using DotVVM.Framework.Controls.DynamicData.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotVVM.DynamicData.Helpers.Configuration.Builders;
 
-public class DynamicDataHelpersListPageBuilder : DynamicDataHelpersPageBuilder
+public class DynamicDataHelpersListPageBuilder<TModel> : DynamicDataHelpersPageBuilder
 {
-    private readonly Type interfaceType;
+    private DynamicDataHelpersServiceBuilder? serviceBuilder;
 
-    public DynamicDataHelpersListPageBuilder(Type serviceType, DynamicDataHelpersSectionBuilder section) : base("List", serviceType, section)
+    public Type FilterModelType { get; }
+
+    public DynamicDataHelpersListPageBuilder(Type filterModelType, DynamicDataHelpersSectionBuilder section) : base("List", section)
     {
-        interfaceType = EnsureServiceType(serviceType, typeof(IListPageService<,>));
-
         IncludePageInMenu = true;
+        FilterModelType = filterModelType;
     }
 
-    public new DynamicDataHelpersListPageBuilder SetPageName(string pageName)
+    public new DynamicDataHelpersListPageBuilder<TModel> SetPageName(string pageName)
     {
         base.SetPageName(pageName);
         return this;
     }
 
-    public new DynamicDataHelpersListPageBuilder AddSelector<TSelectorItem>()
+    public new DynamicDataHelpersListPageBuilder<TModel> AddSelector<TSelectorItem>()
         where TSelectorItem : SelectorItem
     {
         base.AddSelector<TSelectorItem>();
         return this;
     }
 
-    public new DynamicDataHelpersListPageBuilder IncludeInMenu(bool includeInMenu)
+    public new DynamicDataHelpersListPageBuilder<TModel> IncludeInMenu(bool includeInMenu)
     {
         base.IncludeInMenu(includeInMenu);
         return this;
     }
 
+    public DynamicDataHelpersListPageBuilder<TModel> UseService(DynamicDataHelpersServiceBuilder serviceBuilder)
+    {
+        this.serviceBuilder = serviceBuilder;
+        return this;
+    }
+
+    public override bool IsListPage => true;
+    
+    public override bool IsDetailPage => false;
+
     protected override string GetViewMarkup() => GetTemplateMarkup("List");
 
     protected override Type GetViewModelType()
     {
-        var viewModelType = typeof(ListPageViewModel<,>).MakeGenericType(interfaceType.GetGenericArguments());
+        var viewModelType = typeof(ListPageViewModel<,>).MakeGenericType(typeof(TModel), FilterModelType);
         var selectorsTupleTypes = GetSelectorsTupleType();
         return Section.GlobalConfiguration.ViewModelHostType.MakeGenericType(viewModelType, selectorsTupleTypes);
     }
 
     protected override IEnumerable<ToolbarButton> GetToolbarButtons()
     {
-        var detailPage = Section.Pages.OfType<DynamicDataHelpersDetailPageBuilder>().FirstOrDefault();
+        var detailPage = Section.Pages.FirstOrDefault(p => p.IsDetailPage);
         if (detailPage != null)
         {
             yield return new ToolbarButton()
@@ -72,7 +84,12 @@ public class DynamicDataHelpersListPageBuilder : DynamicDataHelpersPageBuilder
 
     protected override void RegisterServices(IServiceCollection services)
     {
-        services.AddScoped(interfaceType, ServiceType);
-        services.AddScoped(typeof(ListPageViewModel<,>).MakeGenericType(interfaceType.GetGenericArguments()));
+        if (serviceBuilder == null)
+        {
+            throw new Exception($"The list page in {Section.SectionName} doesn't have any service configured! Please use UseService();");
+        }
+        serviceBuilder.Build(services);
+
+        services.AddScoped(typeof(ListPageViewModel<,>).MakeGenericType(typeof(TModel), FilterModelType));
     }
 }

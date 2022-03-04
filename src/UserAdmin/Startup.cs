@@ -41,7 +41,7 @@ public class Startup
 
         services.AddEntityFrameworkSqlite()
             .AddDbContext<DbContext, AppDbContext>()
-            .AddIdentity<IdentityUser, IdentityRole>()
+            .AddIdentity<AppUser, AppRole>()
             .AddEntityFrameworkStores<AppDbContext>();
 
         //services.AddScoped<UserService>();
