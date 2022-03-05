@@ -13,12 +13,13 @@ namespace DotVVM.DynamicData.Helpers
     public static class BuilderExtensions
     {
 
-        public static DynamicDataHelpersListPageBuilder<TModel> UseEfCoreService<TDbContext, TEntity, TModel>(this DynamicDataHelpersListPageBuilder<TModel> pageBuilder, 
-            Action<DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel>>? configure = null)
+        public static DynamicDataHelpersListPageBuilder<TModel> UseEfCoreService<TDbContext, TEntity, TModel, TFilterModel>(this DynamicDataHelpersListPageBuilder<TModel> pageBuilder, 
+            Action<DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel>>? configure = null)
             where TDbContext : DbContext 
             where TModel : new()
+            where TEntity : class
         {
-            var serviceBuilder = new DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel>(pageBuilder);
+            var serviceBuilder = new DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel>(pageBuilder);
             configure?.Invoke(serviceBuilder);
             pageBuilder.UseService(serviceBuilder);
             return pageBuilder;

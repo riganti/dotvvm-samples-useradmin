@@ -1,5 +1,8 @@
-﻿using DotVVM.DynamicData.Helpers.Configuration;
+﻿using System.Reflection;
+using DotVVM.DynamicData.Helpers.Configuration;
 using DotVVM.DynamicData.Helpers.Configuration.Builders;
+using DotVVM.DynamicData.Helpers.Context;
+using DotVVM.DynamicData.Helpers.EfCore.Context;
 using DotVVM.DynamicData.Helpers.EfCore.Services;
 using DotVVM.DynamicData.Helpers.Services;
 using DotVVM.Framework.Controls;
@@ -8,13 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DotVVM.DynamicData.Helpers.EfCore.Configuration.Builders;
 
-public class DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel> : DynamicDataHelpersServiceBuilder 
+public class DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> : DynamicDataHelpersServiceBuilder, IListServiceBuilderWithMapping<TEntity, TModel> 
     where TModel : new() 
     where TDbContext : DbContext
+    where TEntity : class
 {
-    private Func<IQueryable<TEntity>, IQueryable<TEntity>>? entityFilter = null;
-    private Func<IQueryable<TEntity>, IQueryable<TModel>>? projection = null;
-    private Func<IGridViewDataSet<TModel>, TDbContext, Task>? postProcessor = null;
+    private Func<IQueryable<TEntity>, TFilterModel, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>>? entityFilter = null;
+    private Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TModel>>? projection = null;
+    private Func<IGridViewDataSet<TModel>, EfCoreServiceContext<TDbContext>, Task>? postProcessor = null;
 
     public DynamicDataHelpersListPageBuilder<TModel> Page { get; }
 
@@ -23,22 +27,55 @@ public class DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TMo
         Page = page;
     }
 
-    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel> UseEntityFilter(
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UseEntityFilter(
         Func<IQueryable<TEntity>, IQueryable<TEntity>> entityFilter)
+    {
+        this.entityFilter = (entities, filter, context) => entityFilter(entities);
+        return this;
+    }
+
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UseEntityFilter(
+        Func<IQueryable<TEntity>, TFilterModel, IQueryable<TEntity>> entityFilter)
+    {
+        this.entityFilter = (entities, filter, context) => entityFilter(entities, filter);
+        return this;
+    }
+
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UseEntityFilter(
+        Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>> entityFilter)
+    {
+        this.entityFilter = (entities, filter, context) => entityFilter(entities, context);
+        return this;
+    }
+
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UseEntityFilter(
+        Func<IQueryable<TEntity>, TFilterModel, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>> entityFilter)
     {
         this.entityFilter = entityFilter;
         return this;
     }
 
-    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel> UseProjection(
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UseMapping(
         Func<IQueryable<TEntity>, IQueryable<TModel>> projection)
+    {
+        this.projection = (entities, context) => projection(entities);
+        return this;
+    }
+
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UseMapping(
+        Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TModel>> projection)
     {
         this.projection = projection;
         return this;
     }
 
-    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel> UsePostProcessor(
-        Func<IGridViewDataSet<TModel>, TDbContext, Task> postProcessor)
+    IListServiceBuilderWithMapping<TEntity, TModel> IListServiceBuilderWithMapping<TEntity, TModel>.UseMapping(Func<IQueryable<TEntity>, ServiceContext, IQueryable<TModel>> projection)
+    {
+        return UseMapping(projection);
+    }
+
+    public DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TModel, TFilterModel> UsePostProcessor(
+        Func<IGridViewDataSet<TModel>, EfCoreServiceContext<TDbContext>, Task> postProcessor)
     {
         this.postProcessor = postProcessor;
         return this;
@@ -46,18 +83,13 @@ public class DynamicDataHelpersEfCoreListServiceBuilder<TDbContext, TEntity, TMo
 
     public override void Build(IServiceCollection serviceCollection)
     {
-        var interfaceType = typeof(IListPageService<,>).MakeGenericType(typeof(TModel), Page.FilterModelType);
-        var serviceType = typeof(EfCoreListPageService<,,,>)
-            .MakeGenericType(typeof(TDbContext), typeof(TEntity), typeof(TModel), Page.FilterModelType);
-
-        serviceCollection.AddScoped(interfaceType, 
-            provider => Activator.CreateInstance(serviceType, 
-                new object?[]
-                {
-                    provider.GetRequiredService<TDbContext>(),
-                    entityFilter,
-                    projection,
-                    postProcessor
-                })!);
+        serviceCollection.AddScoped<IListPageService<TModel, TFilterModel>>(
+            provider => new EfCoreListPageService<TDbContext, TEntity, TModel, TFilterModel>(
+                provider.GetRequiredService<TDbContext>(),
+                provider.GetRequiredService<ServiceContext>(),
+                entityFilter,
+                projection,
+                postProcessor
+            ));
     }
- }
+}

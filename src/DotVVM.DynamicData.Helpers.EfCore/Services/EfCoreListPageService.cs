@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DotVVM.DynamicData.Helpers.Context;
+using DotVVM.DynamicData.Helpers.EfCore.Context;
 using DotVVM.DynamicData.Helpers.Services;
 using DotVVM.Framework.Controls;
 using Microsoft.EntityFrameworkCore;
@@ -15,25 +17,29 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
     {
         private TDbContext DbContext { get; }
 
-        private readonly Func<IQueryable<TEntity>, TFilterModel, IQueryable<TEntity>>? entityFilter;
-        private readonly Func<IQueryable<TEntity>, IQueryable<TListModel>>? projection;
-        private readonly Func<IGridViewDataSet<TListModel>, TDbContext, Task>? postProcessor;
+        private readonly Func<IQueryable<TEntity>, TFilterModel, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>>? entityFilter;
+        private readonly Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TListModel>>? projection;
+        private readonly Func<IGridViewDataSet<TListModel>, EfCoreServiceContext<TDbContext>, Task>? postProcessor;
+        private readonly EfCoreServiceContext<TDbContext> serviceContext;
 
         public EfCoreListPageService(
             TDbContext dbContext, 
-            Func<IQueryable<TEntity>, TFilterModel, IQueryable<TEntity>>? entityFilter = null,
-            Func<IQueryable<TEntity>, IQueryable<TListModel>>? projection = null,
-            Func<IGridViewDataSet<TListModel>, TDbContext, Task>? postProcessor = null)
+            ServiceContext serviceContext,
+            Func<IQueryable<TEntity>, TFilterModel, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>>? entityFilter = null,
+            Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TListModel>>? projection = null,
+            Func<IGridViewDataSet<TListModel>, EfCoreServiceContext<TDbContext>, Task>? postProcessor = null)
         {
             if (projection == null && typeof(TEntity) != typeof(TListModel))
             {
                 throw new Exception($"The EfCoreService needs to specify mapping because the model type {typeof(TListModel)} is not the same as the entity type {typeof(TEntity)}.");
             }
             
-            DbContext = dbContext;
             this.entityFilter = entityFilter;
             this.projection = projection;
             this.postProcessor = postProcessor;
+            this.serviceContext = new EfCoreServiceContext<TDbContext>(serviceContext.DotvvmRequestContext, serviceContext.PageConfiguration, dbContext);
+
+            DbContext = dbContext;
         }
 
         public async Task LoadItems(IGridViewDataSet<TListModel> items, TFilterModel filter)
@@ -42,13 +48,13 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
 
             if (entityFilter != null)
             {
-                queryable = entityFilter(queryable, filter);
+                queryable = entityFilter(queryable, filter, serviceContext);
             }
 
             IQueryable<TListModel> mappedQueryable;
             if (projection != null)
             {
-                mappedQueryable = projection(queryable);
+                mappedQueryable = projection(queryable, serviceContext);
             }
             else
             {
@@ -59,7 +65,7 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
 
             if (postProcessor != null)
             {
-                await postProcessor(items, DbContext);
+                await postProcessor(items, serviceContext);
             }
         }
 

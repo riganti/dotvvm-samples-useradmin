@@ -62,8 +62,8 @@ public class DotvvmStartup : IDotvvmStartup, IDotvvmServiceConfigurator
                 config
                     .AddSection("Users", section => section
                         .AddListPage<UserListModel, UserFilterModel>(page => page 
-                            .UseEfCoreService<AppDbContext, AppUser, UserListModel>(service => service
-                                .UseProjection(users => users.Select(u => new UserListModel()
+                            .UseEfCoreService<AppDbContext, AppUser, UserListModel, UserFilterModel>(service => service
+                                .UseMapping(users => users.Select(u => new UserListModel()
                                 {
                                     Id = u.Id,
                                     UserName = u.UserName,

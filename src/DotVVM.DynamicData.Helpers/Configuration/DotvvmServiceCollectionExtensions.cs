@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotVVM.DynamicData.Helpers.Configuration.Builders;
+using DotVVM.DynamicData.Helpers.Context;
 using DotVVM.DynamicData.Helpers.Hosting;
 using DotVVM.DynamicData.Helpers.Metadata;
 using DotVVM.Framework.Hosting;
@@ -26,6 +27,12 @@ namespace DotVVM.DynamicData.Helpers.Configuration
                 options.LoaderTypes.Insert(0, typeof(DynamicDataHelpersMarkupFileLoader));
             });
             services.Services.AddSingleton<DynamicDataHelpersMarkupFileLoader>();
+
+            services.Services.AddScoped<ServiceContext>(provider =>
+            {
+                var context = provider.GetRequiredService<IDotvvmRequestContext>();
+                return new ServiceContext(context, provider.GetRequiredService<IPageMetadataProvider>().GetPageConfiguration(context));
+            });
 
             var options = new DynamicDataHelpersConfigurationBuilder(masterPagePath, viewModelHostType);
             configure?.Invoke(options);

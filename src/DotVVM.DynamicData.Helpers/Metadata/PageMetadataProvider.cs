@@ -16,6 +16,19 @@ public class PageMetadataProvider : IPageMetadataProvider
 
     public PageMetadata GetPage(IDotvvmRequestContext context)
     {
+        var page = GetPageConfiguration(context);
+
+        return new PageMetadata()
+        {
+            Title = page.PageTitleProvider(),
+            ToolbarButtons = page.ToolbarButtons
+                .Select(b => CreateButtonModel(b, context))
+                .ToList()
+        };
+    }
+
+    public DynamicDataHelpersPageConfiguration GetPageConfiguration(IDotvvmRequestContext context)
+    {
         var allPages = configuration.Sections
             .SelectMany(s => s.Pages.Select(p => new { Section = s, Page = p }))
             .ToList();
@@ -26,13 +39,7 @@ public class PageMetadataProvider : IPageMetadataProvider
             throw new Exception($"Cannot obtain Dynamic Data Helpers page metadata for route {context.Route.RouteName}.");
         }
 
-        return new PageMetadata()
-        {
-            Title = page.Page.PageTitleProvider(),
-            ToolbarButtons = page.Page.ToolbarButtons
-                .Select(b => CreateButtonModel(b, context))
-                .ToList()
-        };
+        return page.Page;
     }
 
     private ToolbarButtonModel CreateButtonModel(ToolbarButton button, IDotvvmRequestContext context)

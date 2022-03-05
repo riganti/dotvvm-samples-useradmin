@@ -4,10 +4,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using DotVVM.DynamicData.Helpers.Context;
+using DotVVM.DynamicData.Helpers.EfCore.Context;
 using DotVVM.DynamicData.Helpers.Services;
-using Humanizer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace DotVVM.DynamicData.Helpers.EfCore.Services
 {
@@ -18,19 +18,27 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
     {
         public TDbContext DbContext { get; }
 
-        private readonly Func<IQueryable<TEntity>, IQueryable<TEntity>>? entityFilter;
-        private readonly Func<TEntity, TModel>? map;
-        private readonly Action<TEntity, TModel>? mapBack;
+        private readonly Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>>? entityFilter;
+        private readonly Func<TEntity, EfCoreServiceContext<TDbContext>, TModel>? map;
+        private readonly Action<TEntity, TModel, EfCoreServiceContext<TDbContext>>? mapBack;
+        private readonly EfCoreServiceContext<TDbContext> serviceContext;
 
         public EfCoreDetailPageService(
             TDbContext dbContext,
-            Func<IQueryable<TEntity>, IQueryable<TEntity>>? entityFilter = null,
-            Func<TEntity, TModel>? map = null,
-            Action<TEntity, TModel>? mapBack = null)
+            ServiceContext serviceContext,
+            Func<IQueryable<TEntity>, EfCoreServiceContext<TDbContext>, IQueryable<TEntity>>? entityFilter = null,
+            Func<TEntity, EfCoreServiceContext<TDbContext>, TModel>? map = null,
+            Action<TEntity, TModel, EfCoreServiceContext<TDbContext>>? mapBack = null)
         {
+            if ((map == null || mapBack == null) && typeof(TEntity) != typeof(TModel))
+            {
+                throw new Exception($"The EfCoreService needs to specify mapping because the model type {typeof(TModel)} is not the same as the entity type {typeof(TEntity)}.");
+            }
+
             this.entityFilter = entityFilter;
             this.map = map;
             this.mapBack = mapBack;
+            this.serviceContext = new EfCoreServiceContext<TDbContext>(serviceContext.DotvvmRequestContext, serviceContext.PageConfiguration, dbContext);
 
             DbContext = dbContext;
 
@@ -44,7 +52,7 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
             TModel model;
             if (map != null)
             {
-                model = map(entity);
+                model = map(entity, serviceContext);
             }
             else if (entity is TModel convertedEntity)
             {
@@ -79,7 +87,7 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
                     entity = GetEntityById(id);
                 }
 
-                mapBack(entity, item);
+                mapBack(entity, item, serviceContext);
             }
             else if (item is TEntity convertedEntity)
             {
@@ -116,7 +124,7 @@ namespace DotVVM.DynamicData.Helpers.EfCore.Services
             IQueryable<TEntity> query = DbContext.Set<TEntity>();
             if (entityFilter != null)
             {
-                query = entityFilter(query);
+                query = entityFilter(query, serviceContext);
             }
             return query;
         }
